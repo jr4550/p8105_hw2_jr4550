@@ -26,8 +26,47 @@ pols_df =
   select(-prez_gop, -prez_dem)
   
 ```
+Clean the snp.csv
+
+```{r}
+snp_df = 
+  read_csv("data/snp.csv", na = c("NA", ".", "")) %>% 
+  janitor::clean_names() %>%
+  separate(date, into = c("month", "day", "year"), sep = "/", convert = TRUE) %>%
+  mutate(
+    month = month.name[month],
+    year = if_else(year < 50, year + 2000, year + 1900)
+  ) %>%
+  select(year, month, close)
+```
+
+clean the unemployment
+```{r}
+unemployment_df = 
+  read_csv("data/unemployment.csv", na = c("NA", ".","")) %>% 
+  janitor::clean_names() %>% 
+   pivot_longer(
+    cols = jan:dec,
+    names_to = "month",
+    values_to = "unemployment_pct"
+  ) |>
+  mutate(
+    year = as.integer(year),
+    month = factor(month,
+                   levels = tolower(month.abb),
+                   labels = month.name),
+    month = as.character(month)
+  )
+```
+Joining data sets
+```{r}
+merged_df = pols_df %>%
+  left_join(snp_df, by = c("year", "month")) %>%
+  left_join(unemployment_df, by = c("year", "month")) %>% 
+  select(-date)
+```
 
 
-
+v
 
 
