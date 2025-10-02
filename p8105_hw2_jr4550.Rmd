@@ -26,7 +26,7 @@ pols_df =
   select(-prez_gop, -prez_dem)
   
 ```
-Clean the snp.csv
+Cleaning snp.csv dataset 
 
 ```{r}
 snp_df = 
@@ -40,7 +40,7 @@ snp_df =
   select(year, month, close)
 ```
 
-clean the unemployment
+Cleaning unemployment.csv dataset 
 ```{r}
 unemployment_df = 
   read_csv("data/unemployment.csv", na = c("NA", ".","")) %>% 
@@ -67,14 +67,11 @@ merged_df = pols_df %>%
 ```
 
 #### Description of Problem 1 datasets
-The pols_df dataset characterizes the the political party representation of the number of Senators ("sen_dem & sen_gop) and Representatives (rep_gop & rep_dem), and the political party of the President (dem/gop) in the United States over from 1947-2015. The snp_df shows the S&P values of each month from Dec 1950- July 2015. The unemployment_df shows the unemployments rates in the US from Jan 1948-June2015.
-
-
+The pols_df dataset characterizes the the political party representation of the number of Senators (sen_dem & sen_gop) and Representatives (rep_gop & rep_dem), and the political party of the President (dem/gop) in the United States from 1947-2015. The snp_df shows the S&P values of each month from Dec 1950- July 2015. The unemployment_df shows the unemployments rates in the US from Jan 1948-June2015.
 
 
 ## Problem 2
 Read and clean Mr.Trashwheel Dataset
-
 
 ```{r}
 library(tidyverse)
@@ -137,7 +134,7 @@ format(gwynnda_june_2022_cigs, big.mark = ",")
 The combined Trash Wheel dataset contains r nrow(trashwheel_df) observations from three water-wheel trash collectors in Baltimore's Inner Harbor. Key variables include date, weight_tons, volume_cubic_yards, and counts of specific items like plastic_bottles, cigarette_butts, and sports_balls. Professor Trash Wheel collected a total of 216.26 tons of trash. In June 2022, Gwynnda collected 18,120 cigarette butts.
 
 ## Problem 3 
-Zillow and Zipcodes
+Zillow and Zipcodes datasets 
 
 #### Zipcode dataset
 ```{r}
@@ -230,6 +227,6 @@ price_comparison %>%
     format.args = list(big.mark = ",")
   )
 ```
-Comment: 
+##### Comment: 
 The 10007 ZIP code (New York County, Lower Manhattan) saw the largest drop in rental prices. In January 2020, the average rent was $6,334.21, which fell to $5,421.61 in January 2021, a decrease of $912.60, or 14.41%.
 
