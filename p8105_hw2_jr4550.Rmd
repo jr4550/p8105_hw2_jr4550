@@ -10,7 +10,7 @@ date: "2025-10-01"
 library(tidyverse)
 ```
 
-### Problem 1
+## Problem 1
 First, clean the data in pols-month.csv.
 ```{r}
 pols_df = 
@@ -72,7 +72,7 @@ The pols_df dataset characterizes the the political party representation of the 
 
 
 
-### Problem 2
+## Problem 2
 Read and clean Mr.Trashwheel Dataset
 
 
@@ -136,6 +136,100 @@ format(gwynnda_june_2022_cigs, big.mark = ",")
 
 The combined Trash Wheel dataset contains r nrow(trashwheel_df) observations from three water-wheel trash collectors in Baltimore's Inner Harbor. Key variables include date, weight_tons, volume_cubic_yards, and counts of specific items like plastic_bottles, cigarette_butts, and sports_balls. Professor Trash Wheel collected a total of 216.26 tons of trash. In June 2022, Gwynnda collected 18,120 cigarette butts.
 
-### Problem 3 
+## Problem 3 
+Zillow and Zipcodes
 
+#### Zipcode dataset
+```{r}
+zip_codes_df = 
+  read_csv("data/Zip Codes.csv", na = c("NA", ".", "")) %>%
+  janitor::clean_names() %>%
+  rename(zipcode = zip_code) %>%
+  select(zipcode, county, neighborhood) %>%
+  # Remove duplicates - keep first occurrence of each zipcode
+  distinct(zipcode, .keep_all = TRUE)
+```
+#### Zillow dataset 
+```{r}
+zillow_df = 
+  read_csv("data/Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv", na = c("NA", ".", "")) %>%
+  janitor::clean_names() %>%
+  rename(zipcode = region_name) %>%
+  select(zipcode, county_name, starts_with("x2")) %>%
+  pivot_longer(
+    cols = starts_with("x2"),
+    names_to = "date",
+    values_to = "rental_price"
+  ) %>%
+  mutate(
+    date = str_remove(date, "^x"),
+    date = as.Date(date, format = "%Y_%m_%d")
+  )
+```
+#### combine datasets 
+```{r}
+rental_df = 
+  zillow_df %>%
+  left_join(zip_codes_df, by = "zipcode") %>%
+  rename(borough = county_name) %>%
+  select(zipcode, borough, neighborhood, date, rental_price) %>%
+  arrange(zipcode, date)
+```
+
+#### Description of dataset 
+```{r}
+nrow(rental_df)
+rental_df %>% distinct(zipcode) %>% nrow()
+rental_df %>% distinct(neighborhood) %>% filter(!is.na(neighborhood)) %>% nrow()
+```
+Number of observations: 17284
+Number of Unique Zipcode: 149
+Number of Unique Neighborhoods: 42
+
+#### Zipcodes in zip_codes_df vs zillow_df
+```{r}
+missing_zips = zip_codes_df %>%
+  anti_join(zillow_df %>% distinct(zipcode), by = "zipcode") %>%
+  arrange(zipcode)
+n_missing = nrow(missing_zips)
+```
+
+Zipcodes in "missing_zips" show the ZIP codes in zip_codes_df that are not in the zillow_df. This could be for a few reasons such as some zipcodes may not have any or have few Zillow rentals. One example is the Empire State Building, as it has its own zipcode, 10118. 
+
+#### Covid Price Comparison
+```{r}
+  price_comparison = 
+  rental_df %>%
+  filter(date %in% as.Date(c("2020-01-31", "2021-01-31"))) %>%
+  select(zipcode, borough, neighborhood, date, rental_price) %>%
+  distinct(zipcode, date, .keep_all = TRUE) %>%
+  pivot_wider(
+    names_from = date,
+    values_from = rental_price
+  ) %>%
+  rename(
+    jan_2020 = `2020-01-31`,
+    jan_2021 = `2021-01-31`
+  ) %>%
+  filter(!is.na(jan_2020), !is.na(jan_2021)) %>%
+  mutate(
+    price_change = jan_2021 - jan_2020,
+    pct_change = (price_change / jan_2020) * 100
+  ) %>%
+  arrange(price_change) %>%
+  slice_head(n = 10)
+```
+
+```{r}
+price_comparison %>%
+  select(zipcode, borough, neighborhood, jan_2020, jan_2021, price_change, pct_change) %>%
+  knitr::kable(
+    col.names = c("ZIP Code", "Borough", "Neighborhood", "Jan 2020", "Jan 2021", 
+                  "$ Change", "% Change"),
+    digits = 2,
+    format.args = list(big.mark = ",")
+  )
+```
+Comment: 
+The 10007 ZIP code (New York County, Lower Manhattan) saw the largest drop in rental prices. In January 2020, the average rent was $6,334.21, which fell to $5,421.61 in January 2021, a decrease of $912.60, or 14.41%.
 
